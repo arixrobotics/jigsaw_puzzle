@@ -1,3 +1,5 @@
+# v2 tries to use the extractRect algo to find largest enclosed rectangle
+
 # import the necessary packages
 import imutils
 import cv2
@@ -36,40 +38,46 @@ for c in cnts:
     cY = int((M["m01"] / M["m00"]))
     print cX, cY
 
-    cv2.drawContours(image, [c], -1, (0, 255, 0), -1)
-    # cv2.putText(image, shape, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX,
-    #   0.5, (255, 255, 255), 2)
-    # # determine the most extreme points along the contour
-    # extLeft = tuple(c[c[:, :, 0].argmin()][0])
-    # extRight = tuple(c[c[:, :, 0].argmax()][0])
-    # extTop = tuple(c[c[:, :, 1].argmin()][0])
-    # extBot = tuple(c[c[:, :, 1].argmax()][0])
+    # cv2.drawContours(image, [c], -1, (0, 255, 0), -1)
 
-    # # draw the outline of the object, then draw each of the
-    # # extreme points, where the left-most is red, right-most
-    # # is green, top-most is blue, and bottom-most is teal
-    # cv2.drawContours(image, [c], -1, (0, 255, 255), 2)
-    # cv2.circle(image, extLeft, 8, (0, 0, 255), -1)
-    # cv2.circle(image, extRight, 8, (0, 255, 0), -1)
-    # cv2.circle(image, extTop, 8, (255, 0, 0), -1)
-    # cv2.circle(image, extBot, 8, (255, 255, 0), -1) 
+    # mask = np.ones(image.shape[:2], dtype="uint8") * 255
+    mask = np.zeros(image.shape[:2], dtype="uint8")
 
-    # # Bounding Rectangle
-    # x,y,w,h = cv2.boundingRect(c)
-    # cv2.rectangle(image,(x,y),(x+w,y+h),(0,255,0),2)
-    # # Rotated rect
-    # rect = cv2.minAreaRect(c)
-    # box = cv2.boxPoints(rect)
-    # box = np.int0(box)
-    # cv2.drawContours(image,[box],0,(0,0,255),2)
+    # Draw the contours on the mask
+    cv2.drawContours(mask, [c], -1, 255, -1)
 
-    # # Corner detector
-    # dst = cv2.cornerHarris(thresh,2,3,0.04)
-    # #result is dilated for marking the corners, not important
-    # dst = cv2.dilate(dst,None)
-    # # Threshold for an optimal value, it may vary depending on the image.
-    # image[dst>0.01*dst.max()]=[0,0,255]
+    # remove the contours from the image and show the resulting images
+    image2 = cv2.bitwise_and(image, image, mask=mask)
+    cv2.imshow("Mask", mask)
+    cv2.imshow("After", image2)
+    cv2.waitKey(0)
+    '''
+    ### extract rectangle
+    # convert to 
+    a = cv2.cvtColor(cv2.imread(image_name),cv2.COLOR_BGR2GRAY)[::-1].T
+    #change with 0 and 1
+    idx_in  = np.where(a==255) 
+    idx_out = np.where(a==0) 
+    aa = np.ones_like(a)
+    aa[idx_in]  = 0
 
+    #get coordinate of biggest rectangle
+    #----------------
+    time_start = datetime.datetime.now()
+
+    rect_coord_ori, angle, coord_out_rot= findRotMaxRect(aa, flag_opt=True, nbre_angle=4, \
+                                                             flag_parallel=False,         \
+                                                             flag_out='rotation',         \
+                                                             flag_enlarge_img=False,      \
+                                                             limit_image_size=100         )
+   
+    print 'time elapsed =', (datetime.datetime.now()-time_start).total_seconds()
+    print 'angle        =',  angle
+    print 
+
+    '''
+
+    '''
     # Approc PoliDP
     peri = cv2.arcLength(c, True)
     approx = cv2.approxPolyDP(c, 0.02 * peri, True) #0.005
@@ -115,7 +123,8 @@ for c in cnts:
         if angle_diff > 75.0 :
             cv2.circle(image, (pt1[0],pt1[1]), 8, (255, 255, 255), -1) 
         # cv2.putText(image, str(angle_diff), (pt1[0],pt1[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+    '''
     # show the output image
-    cv2.imshow("Image", image)
-    cv2.imshow("Images", np.hstack([gray, thresh]))
-    cv2.waitKey(0)
+    # cv2.imshow("Image", image)
+    # cv2.imshow("Images", np.hstack([gray, thresh]))
+    # cv2.waitKey(0)
